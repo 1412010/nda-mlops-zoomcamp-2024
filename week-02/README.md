@@ -34,6 +34,10 @@
   + No standard format.
   + Visibility and Collaboration.
 
++ MLOps lifecycle and ML experiment tracking:
+
+![alt text](images/image_7.png)
+
 + **MLflow**:
   + A Python open-source library for the Machine Learning lifecycle. Including:
     + Tracking.
@@ -69,6 +73,7 @@
   ```bash
   mlfow ui
   ```
+
   + Go to URL: http://127.0.0.1:5000/
 
 + Start the MLflow server with SQLite as backend:
@@ -112,4 +117,188 @@
 
 
 ### 2.2. Experiment tracking
+
++ Optimize hyperparameters using ```hyperopt``` library.
+
+  ```python
+  import xgboost as xgb
+
+  from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
+  from hyperopt.pyll import scope
+  ```
+
++ Create train and validation matrix of XGBoost: 
+
+  ```python
+  train = xgb.DMatrix(X_train, label=y_train)
+  val = xgb.DMatrix(X_val, label=y_val)
+  ```
+
++ Create an objective function for each training iteration: 
+
+  ```python
+  def objective(params):
+
+    with mlflow.start_run():
+        mlflow.set_tag('model', 'xgboost')
+        mlflow.log_params(params)
+        booster = xgb.train(
+            params=params,
+            dtrain=train,
+            num_boost_round=1000,
+            evals=[(val, "validation")],
+            early_stopping_rounds=50
+        )
+        y_pred = booster.predict(val)
+        rmse = root_mean_squared_error(y_val, y_pred)
+        mlflow.log_metric("rmse", rmse)
+    
+    return { "loss": rmse, 'status': STATUS_OK }
+  ```
+
++ Define the searching space for each hyperparamter:
+
+  ```python
+  search_space = {
+    'max_depth': scope.int(hp.quniform('max_depth', 4, 100, 1)),
+    'learning_rate': hp.loguniform('learning_rate', -3, 0), # [exp(-3), exp(0)] - [0.05, 1]
+    'reg_alpha': hp.loguniform('reg_alpha', -5, -1),
+    'reg_lambda': hp.loguniform('reg_lambda', -6, -1),
+    'min_child_weight': hp.loguniform('min_child_weight', -1, 3),
+    'objective': 'reg:linear',
+    'seed': 42,
+  }
+  ```
+
++ Start the training and optimization: 
+
+  ```python
+  best_result = fmin(
+    fn=objective,
+    space=search_space,
+    algo=tpe.suggest,
+    max_evals=50,
+    trials=Trials()
+  )
+  ```
+
++ While the experiment is running, we can go to the MLflow UI to view and compare experiment runs: 
+
+  ![alt text](images/image_1.png)
+
+  + Compare by Coordiate plot: 
+  ![alt text](images/image_2.png)
+
+  + Scatter plot: 
+  ![alt text](images/image_3.png)
+
+  + Contour plot: 
+  ![alt text](images/image_4.png)
+
++ Choose the best model from experiments and copy its best hyperparameters to train the final model:
+
+  ```python
+  best_params = {
+    'learning_rate': 0.9997943283037245,
+    'max_depth': 33,
+    'min_child_weight': 7.54030397204494,
+    'objective': 'reg:linear',
+    'reg_alpha': 0.01184897746903326,
+    'reg_lambda': 0.011426820732636738,
+    'seed': 42
+  }
+
+  mlflow.xgboost.autolog()
+
+  booster = xgb.train(
+      params=best_params,
+      dtrain=train,
+      num_boost_round=500,
+      evals=[(val, "validation")],
+      early_stopping_rounds=50
+  )
+
+  y_pred = booster.predict(val)
+  rmse = root_mean_squared_error(y_val, y_pred)
+  print(rmse)
+  ```
+
+  + Using ```mlflow.xgboost.autolog()``` to enable auto logging for XGBoost training.
+
++ Check the **Artifacts** of the trained model on MLflow UI: 
+  ![alt text](images/image_5.png)
+
+
+### 2.3. Model management
+
++ What's wrong with traditional model saving methods?
+  + Error prone.
+  + No model versioning.
+  + No model lineage.
+
++ Save model's Aritifact in MLflow:
+  + Method 1: 
+
+    ```python
+    with mlflow.start_run():
+      mlflow.set_tag('model', 'xgboost')
+      mlflow.log_params(params)
+      
+      ....
+
+      mlflow.log_metric("rmse", rmse)
+      
+      mlfow.log_artifact(local_path="models/lin_reg.bin", artifact_path="models_pickle/")
+    ```
+
+  + Method 2 (preferred): 
+
+    ```python
+    ### ....
+
+    mlflow.xgboost.log_model(booster, artifact_path="models_mlflow")
+
+    ```
+
++ Save the trained preprocessor as Artifact:
+
+  ```python
+  ...
+  with open("models/preprocessor.b", "wb") as f_out:
+    pickle.dump(dv, f_out)
+
+  mlflow.log_artifact("models/preprocessor.b", artifact_path="preprocessor")
+  # ...
+  ```
+
++ Load and use the model for prediction (with the code sample from MLflow:
+
+  ```python
+  import mlflow
+  logged_model = 'runs:/92025337761b47258bb509b166789a29/models_mlflow'
+
+  # Load model as a PyFuncModel.
+  loaded_model = mlflow.pyfunc.load_model(logged_model)
+
+  # Predict on a Pandas DataFrame.
+  import pandas as pd
+  loaded_model.predict(pd.DataFrame(data))
+  ```
+
++ Load the model as an XGBoost model, instead of Pyfunc: 
+
+  ```python
+  logged_model = 'runs:/92025337761b47258bb509b166789a29/models_mlflow'
+
+  xgboost_model = mlflow.xgboost.load_model(logged_model)
+  ```
+
++ Predict the data:
+
+  ```python
+  y_pred = xgboost_model.predict(val)
+  ```
+
++ MLflow model format: 
+  ![alt text](images/image_6.png)
 
