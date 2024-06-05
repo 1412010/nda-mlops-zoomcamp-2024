@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Folders
+week-02/mlruns/
+
 # C extensions
 *.so
 
