@@ -5,6 +5,7 @@ __pycache__/
 
 # Folders
 week-02/mlruns/
+week-02/artifacts_local/
 
 # C extensions
 *.so

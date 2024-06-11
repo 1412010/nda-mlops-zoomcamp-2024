@@ -302,3 +302,66 @@
 + MLflow model format: 
   ![alt text](images/image_6.png)
 
+### 2.4. Model Registry
+
++ **Model Registry **component is a centralized model store, set of APIs and UI, to collaboratively manage the full lifecycle of an MLflow model. It provides: 
+  + Model lineage.
+  + model versioning.
+  + Model stage transitions and model aliases.
+  + Annotations (tag, description...).
+
+  ![alt text](images/image_8.png)
+
++ In the Artifact tab, pick the best trained model, click **Register Model**.
+  + Create a new model name if we do not have one.
+  ![alt text](images/image_9.png)
+
++ Go to the **Model** tab to check the registerd models.
+  ![alt text](images/image_11.png)
+
++ Enter to one model detail and check the versions of the model.
+  ![alt text](images/image_10.png)
+
+  + We can add Description, Tags, Schema for each model version.
+
++ Add the **Model Aliases** for the versioned model. For example, mark the alias ```staging``` for the model.
+  ![alt text](images/image_12.png)
+
++ Instead of using MLflow UI for Model Registry. We can perform the actions in Python by using the **MLflow Client** library
+  + Refer to this notebook: [register_model.py](register_model.py)
+
+### 2.5. MLflow in practice
+
++ Configuring MLflow:
+  + **Backend store:**
+    + local filesystem.
+    + SQLAlchemy compatible DB (e.g. SQLite).
+  
+  + **Artifacts store:**
+    + local filesystem.
+    + remote (e.g. s3 bucket).
+
+  + **Tracking server:**
+    + no tracking server.
+    + localhost.
+    + remote.
+
+![alt text](images/image_13.png)
+
++ Reference: https://mlflow.org/docs/latest/tracking.html
+
+#### Scenario 1: A single data scientist participating in an ML competition
+
++ Reference: [mlflow_scenerio_1](mlflow_scenerio_1.ipynb)
+
+  ![alt text](images/image_14.png)
+
+#### Scenario 2: A cross-functional team with one data scientist working on an ML model
+
++ Reference: [mlflow_scenerio_2](mlflow_scenerio_2.ipynb)
+  ![alt text](images/image_15.png)
+
+#### Scenario 3: Multiple data scientist working on multiple ML models
+
++ Reference: [mlflow_scenerio_3](mlflow_scenerio_3.ipynb)
+  ![alt text](images/image_16.png)
