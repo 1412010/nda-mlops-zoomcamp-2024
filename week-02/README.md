@@ -1,13 +1,12 @@
 # Week 2 - Experiment Tracking
 
-**Table of contents**
+## Table of contents
 
-1. [Introduction to MLOps](#part-1)
-2. [Configure enviromnent](#part-2)
-3. [Train the first ML model](#part-3)
-4. [MLOps Maturity model](#part-4)
+1. [Introduction to Experiment Tracking](#part-1)
+2. [Getting Started with MLflow](#part-2)
+3. [MLflow: benefits, limitations and alternatives](#part-3)
 
-## Part 1: Introduction <a id='part-1'></a>
+## Part 1: Introduction to Experiment Tracking <a id='part-1'></a>
 
 + Important concepts to know:
   + **ML Experiment**: the process of building ML models.
@@ -36,7 +35,7 @@
 
 + MLOps lifecycle and ML experiment tracking:
 
-![alt text](images/image_7.png)
+  ![alt text](images/image_7.png)
 
 + **MLflow**:
   + A Python open-source library for the Machine Learning lifecycle. Including:
@@ -45,7 +44,7 @@
     + Model Registry.
     + Projects.
   
-  + MLflow allows to organize experiment into runs, and keep track of: 
+  + MLflow allows to organize experiment into runs, and keep track of:
     + Parameters.
     + Metrics.
     + Metadata.
@@ -58,7 +57,7 @@
     + Start and end time.
     + Author.
   
-## Part 2: Getting started with MLflow
+## Part 2: Getting started with MLflow <a id='part-2'></a>
 
 ### 2.1. First experiment
 
@@ -74,7 +73,7 @@
   mlfow ui
   ```
 
-  + Go to URL: http://127.0.0.1:5000/
+  + Go to URL: <http://127.0.0.1:5000/>
 
 + Start the MLflow server with SQLite as backend:
 
@@ -115,7 +114,6 @@
 
 + Go to MLflow UI to view the experiment with logged information.
 
-
 ### 2.2. Experiment tracking
 
 + Optimize hyperparameters using ```hyperopt``` library.
@@ -127,14 +125,14 @@
   from hyperopt.pyll import scope
   ```
 
-+ Create train and validation matrix of XGBoost: 
++ Create train and validation matrix of XGBoost:
 
   ```python
   train = xgb.DMatrix(X_train, label=y_train)
   val = xgb.DMatrix(X_val, label=y_val)
   ```
 
-+ Create an objective function for each training iteration: 
++ Create an objective function for each training iteration:
 
   ```python
   def objective(params):
@@ -170,7 +168,7 @@
   }
   ```
 
-+ Start the training and optimization: 
++ Start the training and optimization:
 
   ```python
   best_result = fmin(
@@ -182,17 +180,17 @@
   )
   ```
 
-+ While the experiment is running, we can go to the MLflow UI to view and compare experiment runs: 
++ While the experiment is running, we can go to the MLflow UI to view and compare experiment runs:
 
   ![alt text](images/image_1.png)
 
-  + Compare by Coordiate plot: 
+  + Compare by Coordiate plot:
   ![alt text](images/image_2.png)
 
-  + Scatter plot: 
+  + Scatter plot:
   ![alt text](images/image_3.png)
 
-  + Contour plot: 
+  + Contour plot:
   ![alt text](images/image_4.png)
 
 + Choose the best model from experiments and copy its best hyperparameters to train the final model:
@@ -225,9 +223,8 @@
 
   + Using ```mlflow.xgboost.autolog()``` to enable auto logging for XGBoost training.
 
-+ Check the **Artifacts** of the trained model on MLflow UI: 
++ Check the **Artifacts** of the trained model on MLflow UI:
   ![alt text](images/image_5.png)
-
 
 ### 2.3. Model management
 
@@ -237,7 +234,7 @@
   + No model lineage.
 
 + Save model's Aritifact in MLflow:
-  + Method 1: 
+  + Method 1:
 
     ```python
     with mlflow.start_run():
@@ -251,7 +248,7 @@
       mlfow.log_artifact(local_path="models/lin_reg.bin", artifact_path="models_pickle/")
     ```
 
-  + Method 2 (preferred): 
+  + Method 2 (preferred):
 
     ```python
     ### ....
@@ -285,7 +282,7 @@
   loaded_model.predict(pd.DataFrame(data))
   ```
 
-+ Load the model as an XGBoost model, instead of Pyfunc: 
++ Load the model as an XGBoost model, instead of Pyfunc:
 
   ```python
   logged_model = 'runs:/92025337761b47258bb509b166789a29/models_mlflow'
@@ -299,12 +296,12 @@
   y_pred = xgboost_model.predict(val)
   ```
 
-+ MLflow model format: 
++ MLflow model format:
   ![alt text](images/image_6.png)
 
 ### 2.4. Model Registry
 
-+ **Model Registry **component is a centralized model store, set of APIs and UI, to collaboratively manage the full lifecycle of an MLflow model. It provides: 
++ **Model Registry**component is a centralized model store, set of APIs and UI, to collaboratively manage the full lifecycle of an MLflow model. It provides:
   + Model lineage.
   + model versioning.
   + Model stage transitions and model aliases.
@@ -346,22 +343,60 @@
     + localhost.
     + remote.
 
-![alt text](images/image_13.png)
++ Reference: <https://mlflow.org/docs/latest/tracking.html>
 
-+ Reference: https://mlflow.org/docs/latest/tracking.html
+  <img src="images/image_13.png" width=75%/>
 
 #### Scenario 1: A single data scientist participating in an ML competition
 
 + Reference: [mlflow_scenerio_1](mlflow_scenerio_1.ipynb)
-
-  ![alt text](images/image_14.png)
+  
+  <img src="images/image_14.png" width=50%/>
 
 #### Scenario 2: A cross-functional team with one data scientist working on an ML model
 
 + Reference: [mlflow_scenerio_2](mlflow_scenerio_2.ipynb)
-  ![alt text](images/image_15.png)
+
+  <img src="images/image_15.png" width=50%/>
 
 #### Scenario 3: Multiple data scientist working on multiple ML models
 
 + Reference: [mlflow_scenerio_3](mlflow_scenerio_3.ipynb)
-  ![alt text](images/image_16.png)
+
+  <img src="images/image_16.png" width=50%/>
+
+
+## Part 3. MLflow: Benefits, limitations and alternatives <a id='part-3'></a>
+
++ Remote tracking server: the tracking server can be easily deployed to the cloud.
+Benefits: 
+  + Share experiments with other DS.
+  + Collaborate with others to build and deploy models.
+  + Give more visibility of the data science efforts.
+
++ Issues with running a remote (shared) MLflow server: 
+  + Security: Restrict access to the server (e.g. access through VPN).
+  + Scalability: 
+    + Check [Deploy MLflow on AWS Fargate]().
+    + Check [MLflow at Company Scale]() by Jean-Denis Lesage.
+  
+  + Isolation:
+    + Define standard for naming experiments, models and a set of default tags.
+    + Restrict accesss to artifiacts (e.g. use s3 buckets living in a different AWS accounts).
+  
++ MLflow limitations:
+  + **Authentication & Users**: The open source version of MLflow does not provide any sort of authentication.
+
+  + **Data versioning**: to ensure full reproducibility we need to version the data used to train the model. MLflow doesn't provide a built-in solution for that but there are a few ways to deal with this limit.
+
+  + **Model/Data monitoring & Alerting**: outside of MLflow scope and there are better tools.
+
++ MLflow alternative:
+  + [Neptune](https://neptune.ai/)
+  + [Comet](https://www.comet.com/)
+  + Weights & Biases.
+  + ....
+
++ Comparing MLOps tool: 
+  + https://neptune.ai/vs
+  + https://neptune.ai/blog/best-ml-experiment-tracking-tools
