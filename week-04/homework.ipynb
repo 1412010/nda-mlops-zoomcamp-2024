@@ -1,0 +1,293 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Homework\n",
+    "\n",
+    "In this homework, we'll deploy the ride duration model in batch mode. Like in homework 1, we'll use the Yellow Taxi Trip Records dataset. \n",
+    "\n",
+    "You'll find the starter code in the [homework](homework) directory."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Q1. Notebook\n",
+    "\n",
+    "We'll start with the same notebook we ended up with in homework 1.\n",
+    "We cleaned it a little bit and kept only the scoring part. You can find the initial notebook [here](homework/starter.ipynb).\n",
+    "\n",
+    "Run this notebook for the March 2023 data.\n",
+    "\n",
+    "What's the standard deviation of the predicted duration for this dataset?\n",
+    "\n",
+    "* 1.24\n",
+    "* 6.24\n",
+    "* 12.28\n",
+    "* 18.28"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![Question 1 ](images/question_1.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Q2. Preparing the output\n",
+    "\n",
+    "Like in the course videos, we want to prepare the dataframe with the output. \n",
+    "\n",
+    "First, let's create an artificial `ride_id` column:\n",
+    "\n",
+    "```python\n",
+    "df['ride_id'] = f'{year:04d}/{month:02d}_' + df.index.astype('str')\n",
+    "```\n",
+    "\n",
+    "Next, write the ride id and the predictions to a dataframe with results. \n",
+    "\n",
+    "Save it as parquet:\n",
+    "\n",
+    "```python\n",
+    "df_result.to_parquet(\n",
+    "    output_file,\n",
+    "    engine='pyarrow',\n",
+    "    compression=None,\n",
+    "    index=False\n",
+    ")\n",
+    "```\n",
+    "\n",
+    "What's the size of the output file?\n",
+    "\n",
+    "* 36M\n",
+    "* 46M\n",
+    "* 56M\n",
+    "* 66M\n",
+    "\n",
+    "__Note:__ Make sure you use the snippet above for saving the file. It should contain only these two columns. For this question, don't change the\n",
+    "dtypes of the columns and use `pyarrow`, not `fastparquet`. "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "File Size in Megabytes is 65.46\n"
+     ]
+    }
+   ],
+   "source": [
+    "import os\n",
+    "file_stats = os.stat('output/yellow_tripdata_2023-03.parquet')\n",
+    "print(f'File Size in Megabytes is {round(file_stats.st_size / (1024) / (1024),2)}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Q3. Creating the scoring script\n",
+    "\n",
+    "Now let's turn the notebook into a script. \n",
+    "\n",
+    "Which command you need to execute for that?"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "```shell\n",
+    "jupyter nbconvert --to script starter.ipynb\n",
+    "```"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Q4. Virtual environment\n",
+    "\n",
+    "Now let's put everything into a virtual environment. We'll use pipenv for that.\n",
+    "\n",
+    "Install all the required libraries. Pay attention to the Scikit-Learn version: it should be the same as in the starter\n",
+    "notebook.\n",
+    "\n",
+    "After installing the libraries, pipenv creates two files: `Pipfile`\n",
+    "and `Pipfile.lock`. The `Pipfile.lock` file keeps the hashes of the\n",
+    "dependencies we use for the virtual env.\n",
+    "\n",
+    "What's the first hash for the Scikit-Learn dependency?\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Running:\n",
+    "\n",
+    "```bash\n",
+    "pipenv install scikit-learn==1.5.0 pandas==2.2.2 pyarrow==15.0.2 --python=3.10.14\n",
+    "```\n",
+    "\n",
+    "Scikit-learn hashes:\n",
+    "\n",
+    "![Scikit-learn Hashes](images/question_4.png)\n",
+    "\n",
+    "First hash is:\n",
+    "\n",
+    "`sha256:057b991ac64b3e75c9c04b5f9395eaf19a6179244c089afdebaad98264bff37c`"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Q5. Parametrize the script\n",
+    "\n",
+    "Let's now make the script configurable via CLI. We'll create two \n",
+    "parameters: year and month.\n",
+    "\n",
+    "Run the script for April 2023. \n",
+    "\n",
+    "What's the mean predicted duration? \n",
+    "\n",
+    "* 7.29\n",
+    "* 14.29\n",
+    "* 21.29\n",
+    "* 28.29\n",
+    "\n",
+    "Hint: just add a print statement to your script."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "predicted mean duration: 14.292282936862449\n"
+     ]
+    }
+   ],
+   "source": [
+    "!pipenv run python starter.py 2023 4"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Q6. Docker container \n",
+    "\n",
+    "Finally, we'll package the script in the docker container. \n",
+    "For that, you'll need to use a base image that we prepared. \n",
+    "\n",
+    "This is what the content of this image is:\n",
+    "```\n",
+    "FROM python:3.10.13-slim\n",
+    "\n",
+    "WORKDIR /app\n",
+    "COPY [ \"model2.bin\", \"model.bin\" ]\n",
+    "```\n",
+    "\n",
+    "Note: you don't need to run it. We have already done it.\n",
+    "\n",
+    "It is pushed it to [`agrigorev/zoomcamp-model:mlops-2024-3.10.13-slim`](https://hub.docker.com/layers/agrigorev/zoomcamp-model/mlops-2024-3.10.13-slim/images/sha256-f54535b73a8c3ef91967d5588de57d4e251b22addcbbfb6e71304a91c1c7027f?context=repo),\n",
+    "which you need to use as your base image.\n",
+    "\n",
+    "That is, your Dockerfile should start with:\n",
+    "\n",
+    "```docker\n",
+    "FROM agrigorev/zoomcamp-model:mlops-2024-3.10.13-slim\n",
+    "\n",
+    "# do stuff here\n",
+    "```\n",
+    "\n",
+    "This image already has a pickle file with a dictionary vectorizer\n",
+    "and a model. You will need to use them.\n",
+    "\n",
+    "Important: don't copy the model to the docker image. You will need\n",
+    "to use the pickle file already in the image. \n",
+    "\n",
+    "Now run the script with docker. What's the mean predicted duration\n",
+    "for May 2023? \n",
+    "\n",
+    "* 0.19\n",
+    "* 7.24\n",
+    "* 14.24\n",
+    "* 21.19"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Bulding image:\n",
+    "\n",
+    "```bash\n",
+    "docker build -t batch-ride-duration-prediction:v1 .\n",
+    "```\n",
+    "\n",
+    "Running a container passing parameters\n",
+    "\n",
+    "```bash\n",
+    "docker run --rm batch-ride-duration-prediction:v1 2023 5\n",
+    "```"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "predicted mean duration: 0.19174419265916945\n"
+     ]
+    }
+   ],
+   "source": [
+    "!docker run --rm batch-ride-duration-prediction:v1 2023 5"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "mlops",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.14"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
